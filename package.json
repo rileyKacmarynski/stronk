@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:format": "prettier --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,md,json}\" ",
-    "lint": "pnpm run lint:format && pnpm run lint:fix"
+    "lint": "pnpm run lint:format && pnpm run lint:fix",
+    "test:vitest": "vitest run --watch",
+    "test:playwright": "playwright test",
+    "test:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.3",
@@ -18,6 +21,9 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-toggle": "^1.0.3",
     "@radix-ui/react-toggle-group": "^1.0.4",
+    "@supabase/auth-ui-react": "^0.4.6",
+    "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/supabase-js": "^2.39.2",
     "@tanstack/react-router": "^1.0.6",
     "@tanstack/router-devtools": "^1.0.6",
     "class-variance-authority": "^0.7.0",
@@ -50,6 +56,7 @@
     "prettier": "^3.1.1",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.2.2",
-    "vite": "^5.0.8"
+    "vite": "^5.0.8",
+    "vitest": "^1.1.1"
   }
 }

@@ -3,7 +3,15 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { cn } from './lib/utils.ts'
-import { Outlet, RootRoute, Router, Route, RouterProvider } from '@tanstack/react-router'
+import {
+  Outlet,
+  rootRouteWithContext,
+  Router,
+  Route,
+  RouterProvider,
+} from '@tanstack/react-router'
+import { Session } from '@supabase/supabase-js'
+import { authRoutes, ensureAuthRoute } from '@/app/auth/routes'
 
 const TanStackRouterDevtools =
   import.meta.env.MODE === 'production'
@@ -18,9 +26,8 @@ function RootLayout() {
   return (
     <main className="dark">
       <div
-        className={cn('min-h-screen font-sans antialiased bg-background text-foreground')}
+        className={cn('min-h-dvh font-sans antialiased bg-background text-foreground')}
       >
-        <p>layout</p>
         <Outlet />
         <Suspense fallback="loading devtools...">
           <TanStackRouterDevtools />
@@ -29,17 +36,37 @@ function RootLayout() {
     </main>
   )
 }
-const rootRoute = new RootRoute({ component: RootLayout })
+
+interface RouterContext {
+  session: Session | null
+}
+
+export const rootRoute = rootRouteWithContext<RouterContext>()({ component: RootLayout })
+
+// This is a bit weird
+export function AppLayout() {
+  return (
+    <div>
+      <p>layout</p>
+      <Outlet />
+    </div>
+  )
+}
+export const appLayoutRoute = new Route({
+  getParentRoute: () => ensureAuthRoute,
+  id: 'app-layout',
+  component: AppLayout,
+})
 
 const indexRoute = new Route({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/',
   component: App,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute])
+const routeTree = rootRoute.addChildren([appLayoutRoute, indexRoute, ...authRoutes])
 
-const router = new Router({ routeTree })
+const router = new Router({ routeTree, context: { session: null } })
 
 declare module '@tanstack/react-router' {
   interface Register {
