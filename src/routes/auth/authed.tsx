@@ -1,15 +1,9 @@
+import AuthProvider from '@/components/providers/auth-provider'
 import supabase from '@/lib/data/db'
-import AuthProvider from './auth-provider'
+import { rootRoute } from '@/routes/root'
 import { Outlet, Route, redirect } from '@tanstack/react-router'
-import { rootRoute } from '@/main'
-import { signUpRoute } from './sign-up'
-import { forgotPasswordRoute } from './forgot-password'
-import { loginRoute } from './login'
 
-// still playing around with this
-// might be nice to have the routes by the component
-
-export const ensureAuthRoute = new Route({
+export const authedRoute = new Route({
   getParentRoute: () => rootRoute,
   id: 'authenticated',
   // TODO: use route context for DI eventually
@@ -36,10 +30,3 @@ export const ensureAuthRoute = new Route({
     </AuthProvider>
   ),
 })
-
-export const authRoutes = [
-  loginRoute,
-  signUpRoute,
-  forgotPasswordRoute,
-  ensureAuthRoute,
-] as const

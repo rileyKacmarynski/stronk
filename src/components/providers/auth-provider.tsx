@@ -1,7 +1,8 @@
 import { Session } from '@supabase/supabase-js'
-import { Navigate, useRouteContext } from '@tanstack/react-router'
+import { Navigate } from '@tanstack/react-router'
 import { createContext, useContext, useEffect, useState } from 'react'
 import supabase from '@/lib/data/db'
+import { authedRoute } from '@/routes/auth/authed'
 
 const SessionContext = createContext<Session | null>(null)
 
@@ -15,7 +16,7 @@ export function useSession() {
 }
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
-  const context = useRouteContext({ strict: false })
+  const context = authedRoute.useRouteContext()
   const [session, setSession] = useState<Session | null>(context.session)
 
   useEffect(() => {
@@ -39,8 +40,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   if (!session) {
     return (
       <Navigate
-        to="/auth/$page"
-        params={{ page: 'login' }}
+        to="/login"
         search={{
           redirect: location.href,
         }}
