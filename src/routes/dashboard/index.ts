@@ -1,5 +1,5 @@
-import { DashboardRoute } from './route'
+import { dashboardRoute } from './route'
 
-export { DashboardRoute } from './route'
+export { dashboardRoute as DashboardRoute } from './route'
 
-export default [DashboardRoute]
+export default [dashboardRoute]

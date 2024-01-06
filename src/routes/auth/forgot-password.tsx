@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import z from 'zod'
-import { Route } from '@tanstack/react-router'
+import { Route, redirect } from '@tanstack/react-router'
 import AuthUi from './auth-ui'
 import { rootRoute } from '@/routes/root'
 
@@ -13,6 +13,15 @@ export const forgotPasswordRoute = new Route({
   path: 'forgot-password',
   component: AuthForm,
   validateSearch: authSearchSchema,
+  beforeLoad: async ({ context: { authService } }) => {
+    const session = await authService.getSession()
+
+    if (!session) {
+      throw redirect({
+        to: '/login',
+      })
+    }
+  },
 })
 
 export default function AuthForm() {

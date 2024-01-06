@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import z from 'zod'
-import { Route } from '@tanstack/react-router'
+import { Route, redirect } from '@tanstack/react-router'
 import AuthUi from './auth-ui'
 import { rootRoute } from '@/routes/root'
 
@@ -14,13 +14,23 @@ export const loginRoute = new Route({
   path: 'login',
   component: AuthForm,
   validateSearch: authSearchSchema,
+  beforeLoad: async ({ context: { authService } }) => {
+    const session = await authService.getSession()
+
+    if (session) {
+      throw redirect({
+        to: '/',
+      })
+    }
+  },
 })
 
 export default function AuthForm() {
+  // I guess this redirect stuff doesn't work anyways
   const { redirect } = loginRoute.useSearch()
 
   return (
-    <div className="min-h-dvh grid place-items-center">
+    <div className="grid min-h-dvh place-items-center">
       <Card className="w-[380px]">
         <CardContent>
           <AuthUi view="sign_in" redirect={redirect} />

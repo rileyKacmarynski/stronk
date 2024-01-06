@@ -4,10 +4,17 @@ import ReactDOM from 'react-dom/client'
 import { Router, RouterProvider } from '@tanstack/react-router'
 import { rootRoute } from '@/routes/root'
 import routes from '@/routes'
+import authService from '@/lib/auth/auth-service'
 
 const routeTree = rootRoute.addChildren(routes)
 
-const router = new Router({ routeTree, context: { session: null } })
+const router = new Router({
+  routeTree,
+  context: {
+    session: null,
+    authService,
+  },
+})
 
 declare module '@tanstack/react-router' {
   interface Register {

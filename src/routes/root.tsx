@@ -28,7 +28,13 @@ function RootLayout() {
   )
 }
 
+type AuthService = {
+  getSession: () => Promise<Session | null>
+  logout: () => Promise<void>
+}
+
 interface RouterContext {
+  authService: AuthService
   session: Session | null
 }
 

@@ -1,27 +1,25 @@
 import AuthProvider from '@/components/providers/auth-provider'
-import supabase from '@/lib/data/db'
 import { rootRoute } from '@/routes/root'
 import { Outlet, Route, redirect } from '@tanstack/react-router'
 
 export const authedRoute = new Route({
   getParentRoute: () => rootRoute,
   id: 'authenticated',
-  // TODO: use route context for DI eventually
-  beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getSession()
+  beforeLoad: async ({ context: { authService } }) => {
+    const session = await authService.getSession()
 
-    if (error || !data.session) {
+    if (!session) {
       throw redirect({
         to: 'login',
-        params: { page: 'login' },
         search: {
           redirect: location.href,
         },
       })
     }
 
+    // from here on out we'll just have session
     return {
-      session: data.session,
+      session,
     }
   },
   component: () => (

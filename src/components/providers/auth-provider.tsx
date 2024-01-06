@@ -15,6 +15,8 @@ export function useSession() {
   return context
 }
 
+// I think I have to use a provider here so I can
+// subscribe to realtime changes from supabase
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const context = authedRoute.useRouteContext()
   const [session, setSession] = useState<Session | null>(context.session)

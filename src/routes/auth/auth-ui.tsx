@@ -2,6 +2,7 @@ import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa, ViewType } from '@supabase/auth-ui-shared'
 import supabase from '@/lib/data/db'
 
+// TODO: Just replace this. It's getting painful
 export default function AuthUi({
   redirect,
   view,
