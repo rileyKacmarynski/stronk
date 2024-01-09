@@ -1,16 +1,31 @@
 import supabase from '../data/db'
 
-async function getSession() {
-  {
-    const { data } = await supabase.auth.getSession()
+export type Credentials = {
+  email: string
+  password: string
+}
 
-    return data.session
-  }
+async function getSession() {
+  const { data } = await supabase.auth.getSession()
+
+  return data.session
 }
 
 async function logout() {
   await supabase.auth.signOut()
 }
 
-export { getSession, logout }
-export default { getSession, logout }
+async function signUp(credentials: Credentials) {
+  return await supabase.auth.signUp(credentials)
+}
+
+async function login(credentials: Credentials) {
+  return await supabase.auth.signInWithPassword(credentials)
+}
+
+async function forgotPassword({ email }: { email: string }) {
+  return await supabase.auth.resetPasswordForEmail(email)
+}
+
+export { getSession, logout, login, signUp, forgotPassword }
+export default { getSession, logout, login, signUp, forgotPassword }

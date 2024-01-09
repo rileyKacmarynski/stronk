@@ -6,6 +6,7 @@ import { rootRoute } from '@/routes/root'
 import routes from '@/routes'
 import authService from '@/lib/auth/auth-service'
 
+// @ts-expect-error have no idea here
 const routeTree = rootRoute.addChildren(routes)
 
 const router = new Router({

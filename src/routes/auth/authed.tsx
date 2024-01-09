@@ -12,7 +12,7 @@ export const authedRoute = new Route({
       throw redirect({
         to: 'login',
         search: {
-          redirect: location.href,
+          redirect: location.pathname === '/' ? undefined : location.pathname,
         },
       })
     }

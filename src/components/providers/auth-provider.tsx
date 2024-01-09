@@ -37,8 +37,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(context.session)
   }, [context.session])
 
-  // I think if we use this only in the `ensureAuthRoute`
-  // this shouldn't ever be null.
   if (!session) {
     return (
       <Navigate
