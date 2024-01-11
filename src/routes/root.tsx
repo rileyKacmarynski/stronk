@@ -1,3 +1,4 @@
+import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Toaster } from '@/components/ui/sonner'
 import { Credentials } from '@/lib/auth/auth-service'
 import { cn } from '@/lib/utils'
@@ -18,7 +19,7 @@ const TanStackRouterDevtools =
 function RootLayout() {
   return (
     <>
-      <main className="dark">
+      <main>
         <div
           className={cn('min-h-dvh font-sans antialiased bg-background text-foreground')}
         >
@@ -29,6 +30,7 @@ function RootLayout() {
         </div>
       </main>
       <Toaster />
+      <TailwindIndicator />
     </>
   )
 }
@@ -38,7 +40,6 @@ type AuthService = {
   logout: () => Promise<void>
   login: (credentials: Credentials) => Promise<AuthResponse>
   signUp: (credentials: Credentials) => Promise<AuthResponse>
-  forgotPassword: ({ email }: { email: string }) => Promise<AuthResponse>
 }
 
 interface RouterContext {

@@ -1,4 +1,4 @@
-import type { Page, Locator } from '@playwright/test'
+import { type Page, type Locator, expect } from '@playwright/test'
 import { STORAGE_STATE } from '../../playwright.config'
 
 export class AuthPage {
@@ -7,9 +7,9 @@ export class AuthPage {
   private readonly submitButton: Locator
 
   constructor(public readonly page: Page) {
-    this.emailInput = this.page.getByLabel(/email address/i)
-    this.passwordInput = this.page.getByLabel(/your password/i)
-    this.submitButton = this.page.getByRole('button', { name: /sign in/i })
+    this.emailInput = this.page.getByLabel(/email/i)
+    this.passwordInput = this.page.getByLabel(/password/i)
+    this.submitButton = this.page.getByRole('button', { name: /log in/i })
   }
 
   async login() {
@@ -25,9 +25,8 @@ export class AuthPage {
     await this.passwordInput.fill(process.env.VITE_PLAYWRIGHT_PASS)
     await this.submitButton.click()
 
-    // it should redirect, but the supabase auth ui isn't redirecting
-    await this.page.waitForTimeout(500)
-    await this.page.goto('/')
+    // wait for redirect to save context
+    await expect(this.page.getByText('layout', { exact: true })).toBeVisible()
 
     await this.page.context().storageState({ path: STORAGE_STATE })
   }

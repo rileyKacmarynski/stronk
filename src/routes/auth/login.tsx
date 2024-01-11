@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
-// TODO: test what happens if this throws
 const authSearchSchema = z.object({
   redirect: z.string().optional(),
 })
