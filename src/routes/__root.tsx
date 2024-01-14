@@ -47,4 +47,4 @@ interface RouterContext {
   session: Session | null
 }
 
-export const rootRoute = rootRouteWithContext<RouterContext>()({ component: RootLayout })
+export const Route = rootRouteWithContext<RouterContext>()({ component: RootLayout })

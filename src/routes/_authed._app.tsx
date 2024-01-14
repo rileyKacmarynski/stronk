@@ -1,15 +1,14 @@
-import { Link, Outlet, Route } from '@tanstack/react-router'
-import { authedRoute } from '@/routes/auth/index'
+import { FileRoute, Link, Outlet, } from '@tanstack/react-router'
 import { useTailwindMediaQuery } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Clock3, Dumbbell, Plus, User } from 'lucide-react'
-export const mainLayoutRoute = new Route({
-  getParentRoute: () => authedRoute,
-  id: 'app-layout',
+
+export const Route = new FileRoute('/_authed/_app').createRoute({
   component: AppLayout,
 })
 
 function AppLayout() {
+  console.log('in App layout')
   const matches = useTailwindMediaQuery('md')
 
   return matches ? <DesktopLayout /> : <MobileLayout />
@@ -18,8 +17,7 @@ function AppLayout() {
 function MobileLayout() {
   return (
     <div>
-      <p>mobile layout</p>
-      <section className="pt-[900px] h-[1000px]">
+      <section className="container">
         <Outlet />
       </section>
       <nav className="bg-background w-full fixed bottom-0 shadow-[0_-1px_3px_0_rgba(0,0,0,0.5),0_-1px_2px_-1px_rgba(0,0,0,0.5)]">
@@ -55,7 +53,7 @@ function MobileLayout() {
           <li>
             <NavButton>
               <Link>
-                <span className="font-bold text-2xl leading-none">?</span> About
+                <span className="text-2xl font-bold leading-none">?</span> About
               </Link>
             </NavButton>
           </li>

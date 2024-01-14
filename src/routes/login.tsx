@@ -1,7 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { z } from 'zod'
-import { Link, Route, redirect, useNavigate } from '@tanstack/react-router'
-import { rootRoute } from '@/routes/root'
+import { Card, CardContent } from '@/components/ui/card'
+import z from 'zod'
+import { FileRoute, Link, redirect, useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -10,7 +9,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -20,13 +18,13 @@ const authSearchSchema = z.object({
   redirect: z.string().optional(),
 })
 export type AuthSearch = z.infer<typeof authSearchSchema>
-export const signUpRoute = new Route({
-  getParentRoute: () => rootRoute,
-  path: 'sign-up',
+export const Route = new FileRoute('/login').createRoute({
   component: AuthForm,
   validateSearch: authSearchSchema,
   beforeLoad: async ({ context: { authService } }) => {
     const session = await authService.getSession()
+
+    console.log('session in route', session)
 
     if (session) {
       throw redirect({
@@ -37,15 +35,13 @@ export const signUpRoute = new Route({
 })
 
 const signUpSchema = z.object({
-  email: z.string().email({ message: 'must be a valid email address.' }),
-  password: z
-    .string()
-    .min(6, { message: 'password must be greater than 6 characters.' })
-    .max(72, { message: 'password must be less than 72 characters.' }),
+  email: z.string(),
+  password: z.string(),
 })
-
 export default function AuthForm() {
-  const { authService } = signUpRoute.useRouteContext()
+  const { redirect } = Route.useSearch()
+  const { authService } = Route.useRouteContext()
+  const navigate = useNavigate({ from: '/login' })
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -55,24 +51,16 @@ export default function AuthForm() {
   })
 
   async function onSubmit(values: z.infer<typeof signUpSchema>) {
-    const { error } = await authService.signUp(values)
-    if (error) {
-      toast.error('Error Signing Up', {
-        description: 'Unable to create account. Try again later.',
-      })
-
-      return
+    const res = await authService.login(values)
+    if (res.error) {
+      toast.error(res.error.message)
     }
 
-    console.log('log in successfull')
-
-    toast.success('Check your inbox', {
-      description: `Confirmation email send to ${values.email}.`,
-    })
+    navigate({ to: redirect ?? '/' })
   }
 
   return (
-    <div className="min-h-dvh grid place-items-center">
+    <div className="grid min-h-dvh place-items-center">
       <Card className="w-[380px]">
         <CardContent className="pt-6">
           <Form {...form}>
@@ -86,7 +74,6 @@ export default function AuthForm() {
                     <FormControl>
                       <Input placeholder="your email address" {...field} />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -99,16 +86,15 @@ export default function AuthForm() {
                     <FormControl>
                       <Input placeholder="password" type="password" {...field} />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="pt-4 flex flex-col items-center gap-1">
+              <div className="flex flex-col items-center gap-1 pt-4">
                 <Button className="w-full" type="submit">
-                  Sign up
+                  Log in
                 </Button>
-                <Button asChild variant="link" className="p-0 text-zinc-400">
-                  <Link to="/login">Already have an account? Sign in</Link>
+                <Button asChild variant="link" className="h-auto p-0 mt-4 text-zinc-400">
+                  <Link to="/sign-up">Don't have an account? Sign up</Link>
                 </Button>
               </div>
             </form>

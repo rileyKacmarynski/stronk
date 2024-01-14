@@ -2,9 +2,8 @@ import { Session } from '@supabase/supabase-js'
 import { Navigate } from '@tanstack/react-router'
 import { createContext, useContext, useEffect, useState } from 'react'
 import supabase from '@/lib/data/db'
-import { authedRoute } from '@/routes/auth/authed'
-
 const SessionContext = createContext<Session | null>(null)
+import { Route } from '@/routes/_authed'
 
 export function useSession() {
   const context = useContext(SessionContext)
@@ -18,7 +17,7 @@ export function useSession() {
 // I think I have to use a provider here so I can
 // subscribe to realtime changes from supabase
 function AuthProvider({ children }: { children: React.ReactNode }) {
-  const context = authedRoute.useRouteContext()
+  const context = Route.useRouteContext()
   const [session, setSession] = useState<Session | null>(context.session)
 
   useEffect(() => {

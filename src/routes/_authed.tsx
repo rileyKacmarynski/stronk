@@ -1,16 +1,13 @@
 import AuthProvider from '@/components/providers/auth-provider'
-import { rootRoute } from '@/routes/root'
-import { Outlet, Route, redirect } from '@tanstack/react-router'
+import { FileRoute, Outlet, redirect } from '@tanstack/react-router'
 
-export const authedRoute = new Route({
-  getParentRoute: () => rootRoute,
-  id: 'authenticated',
+export const Route = new FileRoute('/_authed').createRoute({
   beforeLoad: async ({ context: { authService } }) => {
     const session = await authService.getSession()
 
     if (!session) {
       throw redirect({
-        to: 'login',
+        to: '/login',
         search: {
           redirect: location.pathname === '/' ? undefined : location.pathname,
         },
