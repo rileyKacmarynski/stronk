@@ -2,9 +2,9 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as SignUpImport } from './routes/sign-up'
 import { Route as LogoutImport } from './routes/logout'
 import { Route as LoginImport } from './routes/login'
-import { Route as AuthedImport } from './routes/_authed'
-import { Route as AuthedappImport } from './routes/_authed._app'
-import { Route as AuthedappIndexImport } from './routes/_authed/_app'
+import { Route as AppImport } from './routes/_app'
+import { Route as AppIndexImport } from './routes/_app/index'
+import { Route as AppExercisesImport } from './routes/_app/exercises'
 
 const SignUpRoute = SignUpImport.update({
   path: '/sign-up',
@@ -21,24 +21,24 @@ const LoginRoute = LoginImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AuthedRoute = AuthedImport.update({
-  id: '/_authed',
+const AppRoute = AppImport.update({
+  id: '/_app',
   getParentRoute: () => rootRoute,
 } as any)
 
-const AuthedappRoute = AuthedappImport.update({
-  id: '/_app',
-  getParentRoute: () => AuthedRoute,
+const AppIndexRoute = AppIndexImport.update({
+  path: '/',
+  getParentRoute: () => AppRoute,
 } as any)
 
-const AuthedappIndexRoute = AuthedappIndexImport.update({
-  path: '/',
-  getParentRoute: () => AuthedappRoute,
+const AppExercisesRoute = AppExercisesImport.update({
+  path: '/exercises',
+  getParentRoute: () => AppRoute,
 } as any)
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_authed': {
-      preLoaderRoute: typeof AuthedImport
+    '/_app': {
+      preLoaderRoute: typeof AppImport
       parentRoute: typeof rootRoute
     }
     '/login': {
@@ -53,18 +53,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignUpImport
       parentRoute: typeof rootRoute
     }
-    '/_authed/_app': {
-      preLoaderRoute: typeof AuthedappImport
-      parentRoute: typeof AuthedImport
+    '/_app/exercises': {
+      preLoaderRoute: typeof AppExercisesImport
+      parentRoute: typeof AppImport
     }
-    '/_authed/_app/': {
-      preLoaderRoute: typeof AuthedappIndexImport
-      parentRoute: typeof AuthedappImport
+    '/_app/': {
+      preLoaderRoute: typeof AppIndexImport
+      parentRoute: typeof AppImport
     }
   }
 }
 export const routeTree = rootRoute.addChildren([
-  AuthedRoute.addChildren([AuthedappRoute.addChildren([AuthedappIndexRoute])]),
+  AppRoute.addChildren([AppExercisesRoute, AppIndexRoute]),
   LoginRoute,
   LogoutRoute,
   SignUpRoute,

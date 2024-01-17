@@ -13,7 +13,6 @@ export class AuthPage {
   }
 
   async login() {
-    console.log('logging in...')
     if (!process?.env?.VITE_PLAYWRIGHT_USER) {
       throw new Error('env missing VITE_PLAYWRIGHT_USER')
     }
@@ -26,7 +25,7 @@ export class AuthPage {
     await this.submitButton.click()
 
     // wait for redirect to save context
-    await expect(this.page.getByText('layout', { exact: true })).toBeVisible()
+    await expect(this.page.getByTestId('layout')).toBeVisible()
 
     await this.page.context().storageState({ path: STORAGE_STATE })
   }
