@@ -61,8 +61,6 @@ export default function AuthForm() {
       return
     }
 
-    console.log('log in successfull')
-
     toast.success('Check your inbox', {
       description: `Confirmation email send to ${values.email}.`,
     })

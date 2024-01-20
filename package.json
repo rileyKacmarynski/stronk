@@ -12,7 +12,8 @@
     "lint": "pnpm run lint:format && pnpm run lint:fix",
     "test:vitest": "vitest run --watch",
     "test:playwright": "playwright test",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "supa:types": "npx supabase gen types typescript --project-id 'xvudlydphzsktjoyxprh' --schema public > types/supabase.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -26,6 +27,8 @@
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/supabase-js": "^2.39.2",
+    "@tanstack/react-query": "^5.17.15",
+    "@tanstack/react-query-devtools": "^5.17.18",
     "@tanstack/react-router": "^1.1.9",
     "@tanstack/router-devtools": "^1.1.9",
     "@tanstack/router-vite-plugin": "^1.4.2",
@@ -60,6 +63,7 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.33",
     "prettier": "^3.1.1",
+    "supabase": "^1.131.5",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.11",

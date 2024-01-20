@@ -2,6 +2,7 @@ import Typography from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
 import { useRef } from 'react'
 import { useInView, motion, AnimatePresence } from 'framer-motion'
+import { useHasMounted } from '@/lib/hooks'
 
 export default function PageHeader({
   title,
@@ -14,28 +15,27 @@ export default function PageHeader({
 }) {
   const titleRef = useRef(null)
   const isInView = useInView(titleRef, { margin: '-54px 0px 0px 0px' })
-  const pageTitle = 'Exercises'
+  const hasMounted = useHasMounted()
+
+  console.log('isInView', isInView)
+  console.log('hasMounted', hasMounted)
 
   return (
     <>
       <div className="container sticky top-0 h-12 bg-background ">
         {actions}
-        <AnimatePresence initial={false}>
-          {!isInView && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <Typography
-                className="absolute inline font-semibold -translate-x-1/2 top-3 left-1/2"
-                as="h1"
-              >
-                {title}
-              </Typography>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Typography
+            className={cn(
+              'absolute inline font-semibold -translate-x-1/2 top-3 left-1/2 transition text-transparent',
+              !isInView && hasMounted && 'text-current'
+            )}
+            aria-hidden={!isInView}
+            as="h1"
+          >
+            {title}
+          </Typography>
+        </motion.div>
       </div>
       <Typography
         ref={titleRef}
@@ -43,12 +43,12 @@ export default function PageHeader({
         variant="h1"
         aria-hidden={!isInView}
       >
-        {pageTitle}
+        {title}
       </Typography>
       <div
         className={cn(
-          'sticky py-3 top-10 bg-background border-b-2 border-transparent transition-colors',
-          !isInView && 'border-muted'
+          'sticky top-12 bg-background border-b-2 border-transparent transition-colors',
+          !isInView && hasMounted && 'border-muted'
         )}
       >
         {children}

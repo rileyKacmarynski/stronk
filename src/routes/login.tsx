@@ -24,8 +24,6 @@ export const Route = new FileRoute('/login').createRoute({
   beforeLoad: async ({ context: { authService } }) => {
     const session = await authService.getSession()
 
-    console.log('session in route', session)
-
     if (session) {
       throw redirect({
         to: '/',

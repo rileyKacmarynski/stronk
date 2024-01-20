@@ -13,7 +13,6 @@ export function cn(...inputs: ClassValue[]) {
 export type TailwindScreen = 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 export function useTailwindMediaQuery(screen: TailwindScreen) {
   const query = `(min-width: ${theme.screens[screen]})`
-  console.log('media query', query)
 
   function getMatches(query: string) {
     if (typeof window !== 'undefined') {
@@ -41,4 +40,11 @@ export function useTailwindMediaQuery(screen: TailwindScreen) {
   }, [query])
 
   return matches
+}
+
+// just test function for playing with suspense query stuff
+export function delay(ms: number) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 }

@@ -1,4 +1,9 @@
-import { FileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
+import {
+  FileRoute,
+  Link,
+  Outlet,
+  redirect,
+} from '@tanstack/react-router'
 import { useTailwindMediaQuery } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Clock3, Dumbbell, Plus, User } from 'lucide-react'
@@ -31,7 +36,6 @@ export const Route = new FileRoute('/_app').createRoute({
 })
 
 function AppLayout() {
-  console.log('in App layout')
   const matches = useTailwindMediaQuery('md')
 
   return matches ? <DesktopLayout /> : <MobileLayout />
@@ -40,9 +44,9 @@ function AppLayout() {
 function MobileLayout() {
   return (
     <div data-testid="layout flex flex-column">
-        <ScrollArea className="h-[calc(100dvh-57px)] pb-4">
-          <Outlet />
-        </ScrollArea>
+      <ScrollArea className="h-[calc(100dvh-57px)] pb-4">
+        <Outlet />
+      </ScrollArea>
       <nav className="bg-background w-full border-border border-t py-1 fixed bottom-0 shadow-[0_-1px_3px_0_rgba(0,0,0,0.5),0_-1px_2px_-1px_rgba(0,0,0,0.5)]">
         <ul className="max-w-[380px] mx-auto flex gap-2 justify-between">
           <li>
