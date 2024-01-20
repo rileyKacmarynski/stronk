@@ -21,20 +21,18 @@ const TanStackRouterDevtools =
 function RootLayout() {
   return (
     <>
-      <main>
-        <div
-          className={cn('min-h-dvh font-sans antialiased bg-background text-foreground')}
-        >
-          <Outlet />
-          <Suspense fallback="loading devtools...">
-            <TanStackRouterDevtools />
-          </Suspense>
-          <ReactQueryDevtools
-            initialIsOpen={false}
-            buttonPosition="bottom-right"
-            position="right"
-          />
-        </div>
+      <main
+        className={cn('font-sans h-full antialiased bg-background text-foreground')}
+      >
+        <Outlet />
+        <Suspense fallback="loading devtools...">
+          <TanStackRouterDevtools />
+        </Suspense>
+        <ReactQueryDevtools
+          initialIsOpen={false}
+          buttonPosition="bottom-right"
+          position="right"
+        />
       </main>
       <Toaster />
       <TailwindIndicator />

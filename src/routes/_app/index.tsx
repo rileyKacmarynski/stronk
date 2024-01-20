@@ -1,7 +1,6 @@
 import { useSession } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
-import Typography from '@/components/ui/typography'
-import PageHeader from '@/routes/_app/-components/page-header'
+import PageHeader from '@/routes/-components/page-header'
 import { FileRoute } from '@tanstack/react-router'
 
 export const Route = new FileRoute('/_app/').createRoute({
