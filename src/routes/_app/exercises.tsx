@@ -1,27 +1,49 @@
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { FileRoute } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+import { FileRoute, useNavigate } from '@tanstack/react-router'
 import { SearchIcon } from 'lucide-react'
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query'
+import { queryOptions, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import supabase from '@/lib/data/db'
 import PageHeader from '@/routes/-components/page-header'
+import z from 'zod'
+import { Combobox } from '@/components/ui/combobox'
+import { useTransition, useRef } from 'react'
+import { Loader } from '@/routes/-components/page-loader'
+import LoadingCombobox from '@/components/ui/loading-combobox'
 
 export const exercisesQueries = {
   all: () => ['execises'],
   lists: () => [...exercisesQueries.all(), 'list'],
   // TODO: add filters
-  list: () => {
+  list: (search: ExerciseSearch) => {
     return queryOptions({
-      queryKey: [...exercisesQueries.lists()],
+      queryKey: [...exercisesQueries.lists(), search],
       queryFn: async () => {
-        const { data } = await supabase.from('exercises').select('*').throwOnError()
+        // I don't love this much sql in js, but it works for now
+        let query = supabase
+          .from('exercises')
+          .select(
+            '*, equipment!inner(*), exercise_types!inner(*), muscle_groups!inner(*)'
+          )
+
+        if (search.equipment) {
+          query = query.eq('equipment.id', search.equipment)
+        }
+        if (search.group) {
+          query = query.eq('muscle_groups.id', search.group)
+        }
+        if (search.type) {
+          query = query.eq('exercise_types.id', search.type)
+        }
+        if (search.q) {
+          // TODO: create a computed combining title and desc
+          // create an index and search over that
+          query = query.textSearch('title', search.q, {
+            type: 'websearch',
+          })
+        }
+
+        const { data } = await query.order('title').range(0, 25).throwOnError()
 
         return data
       },
@@ -29,21 +51,76 @@ export const exercisesQueries = {
   },
 }
 
+export const muscleGroupsQueries = {
+  muscleGroupsKey: () => ['muscleGroups'],
+  muscleGroups: () => {
+    return queryOptions({
+      queryKey: [...muscleGroupsQueries.muscleGroupsKey()],
+      queryFn: async () => {
+        const { data } = await supabase.from('muscle_groups').select('*').order('name')
+
+        return data
+      },
+    })
+  },
+}
+
+export const equipmentQueries = {
+  equipmentKey: () => ['equipment'],
+  equipment: () => {
+    return queryOptions({
+      queryKey: [...equipmentQueries.equipmentKey()],
+      queryFn: async () => {
+        const { data } = await supabase.from('equipment').select('*').order('name')
+
+        return data
+      },
+    })
+  },
+}
+
+export const exerciseTypeQueries = {
+  typeKey: () => ['type'],
+  types: () => {
+    return queryOptions({
+      queryKey: [...exerciseTypeQueries.typeKey()],
+      queryFn: async () => {
+        const { data } = await supabase.from('exercise_types').select('*').order('type')
+
+        return data
+      },
+    })
+  },
+}
+
+const exerciseSearchSchema = z.object({
+  q: z.string().optional(),
+  equipment: z.string().optional(),
+  type: z.string().optional(),
+  group: z.string().optional(),
+})
+
+type ExerciseSearch = z.infer<typeof exerciseSearchSchema>
+
 export const Route = new FileRoute('/_app/exercises').createRoute({
-  loader: ({ context }) => {
-    context.queryClient.ensureQueryData(exercisesQueries.list())
+  validateSearch: exerciseSearchSchema,
+  loaderDeps: ({ search }) => search,
+  loader: ({ context, deps }) => {
+    // context.queryClient.ensureQueryData(muscleGroupsQueries.muscleGroups())
+    // context.queryClient.ensureQueryData(equipmentQueries.equipment())
+    // context.queryClient.ensureQueryData(exerciseTypeQueries.types())
+    // context.queryClient.ensureQueryData(exercisesQueries.list(deps))
   },
   component: App,
 })
 
 function App() {
-  const exercisesQuery = useSuspenseQuery(exercisesQueries.list())
-// const scrollRef = useRef<HTMLDivElement>(null)
+  const search = Route.useSearch()
+  const exercisesQuery = useQuery(exercisesQueries.list(search))
 
-  // console.log(exercisesQuery.data)
   return (
-    <>
-      <div className='pb-2'>
+    <div>
+      <div className="pb-2">
         <PageHeader
           title="Exercises"
           actions={
@@ -52,94 +129,140 @@ function App() {
             </Button>
           }
         >
-          <div className="container mx-auto space-y-2">
-            <div className="relative">
-              <SearchIcon className="absolute size-5 text-muted-foreground top-3 left-3" />
-              <Input type="text" placeholder="search" className="pl-10" />
-            </div>
-            <div className="flex gap-2">
-              <Select>
-                <SelectTrigger className="min-w-[180px]">
-                  <SelectValue placeholder="Theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select>
-                <SelectTrigger className="min-w-[180px]">
-                  <SelectValue placeholder="Theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select>
-                <SelectTrigger className="min-w-[180px]">
-                  <SelectValue placeholder="Theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <Form />
         </PageHeader>
-        <div className="container">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Iure praesentium
-          itaque quo omnis atque alias quae explicabo debitis saepe consequatur excepturi
-          et sit officiis sunt ad nesciunt modi est ratione, dolorum accusantium. Omnis
-          enim asperiores, ratione commodi sapiente eaque sit, nesciunt fugiat laboriosam
-          corporis ex cupiditate iusto cum est aliquam explicabo, libero deserunt. Quos ut
-          nihil perspiciatis eligendi quas. Tempore, id tempora, nobis voluptatum itaque
-          alias dolorum at laborum quaerat non hic. Nam minima quaerat asperiores
-          accusamus veritatis quos in, tempore blanditiis ipsam eos, sint reprehenderit.
-          Minima alias non, et doloremque, facilis excepturi modi nesciunt quos porro
-          ratione quibusdam! Beatae nulla eveniet maiores dolorum delectus, praesentium
-          commodi a fugiat, explicabo eaque quaerat corrupti est, omnis reiciendis in
-          tempore. Quisquam excepturi quidem sit ad cupiditate, culpa ipsa possimus
-          debitis beatae facilis nostrum eum rerum odit incidunt ratione commodi modi rem
-          est iste aperiam laudantium voluptatum, dolor repudiandae? Aperiam asperiores
-          nisi quo, expedita assumenda corrupti possimus quas voluptates iste sed sapiente
-          officia blanditiis dolores consequatur dignissimos laudantium ab magnam eum.
-          Accusamus modi rerum tenetur ea? Delectus a consequatur quas fugit. Temporibus,
-          aspernatur quae? Quibusdam tempora voluptate suscipit sint fugit nemo nostrum,
-          magni nesciunt accusantium! Et totam aut repellendus dignissimos unde dolor
-          distinctio ipsam aperiam quisquam, numquam debitis aliquam reprehenderit
-          architecto voluptatibus quia assumenda perspiciatis fuga magnam iusto, culpa
-          expedita doloremque. Ipsa est, reprehenderit corrupti ut optio similique ex.
-          Beatae inventore mollitia illum quasi quod? Quos, voluptatem. Lorem ipsum dolor
-          sit, amet consectetur adipisicing elit. Cum, saepe cumque. Pariatur vitae
-          maiores culpa? Iste omnis, nihil repudiandae aliquid enim eligendi reprehenderit
-          sit soluta ipsam. Magni, ipsa facere voluptatum facilis quis iusto soluta odio
-          fugit aliquid, a optio reiciendis mollitia molestias. Itaque natus debitis ad,
-          corporis cum ducimus molestias, repudiandae dolor neque deleniti nemo. Illum
-          itaque nihil voluptates nulla vel? Facilis, fugiat optio. Illum ipsam minima
-          ducimus magni iure voluptate, aperiam animi nisi officiis dignissimos ratione
-          totam culpa maiores labore amet a dolor blanditiis voluptatem accusamus ut modi
-          enim numquam. Commodi deserunt quibusdam facilis voluptatum perferendis dolorum
-          soluta beatae quaerat blanditiis aut magni quia veritatis eos facere eligendi
-          incidunt necessitatibus provident inventore, explicabo exercitationem totam esse
-          hic optio. Accusantium voluptatibus dolorem nulla illo, praesentium facilis
-          itaque, architecto, fugit saepe est aliquid culpa necessitatibus eos neque
-          corporis odio recusandae exercitationem eligendi quam! Et fugit doloribus veniam
-          ipsum eligendi officia totam ea eius quo, dolores soluta harum facilis quaerat
-          quia ab ratione, exercitationem voluptate odit expedita amet distinctio animi
-          quae quas illum. Mollitia fugiat accusantium sed eos voluptatum repellendus ab
-          deserunt quia ducimus quam placeat excepturi nobis labore doloremque
-          reprehenderit tempore, cupiditate autem quisquam corporis. Dicta illum,
-          inventore ratione quam rerum repellat ad porro commodi excepturi natus id neque
-          reiciendis sunt culpa? Veniam neque tempora soluta esse blanditiis! In,
-          voluptatum corrupti? Non, repellendus ab, magni nulla quam enim unde similique
-          inventore placeat magnam earum amet.
+        <div className="container h-full">
+          <ul>
+            {exercisesQuery.data?.map((exercise) => (
+              <li className="py-2 border-b border-border" key={exercise.id}>
+                <div className="space-y-1">
+                  <p className="font-medium">
+                    {exercise.title}{' '}
+                    {exercise.required_equipment ? `(${exercise.equipment?.name})` : ''}
+                  </p>
+                  <div className="flex text-sm font-medium text-muted-foreground">
+                    <p className="">
+                      {exercise.muscle_groups?.name} • {exercise.exercise_types?.type}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-    </>
+    </div>
+  )
+}
+
+function Form() {
+  const search = Route.useSearch()
+  const equipmentQuery = useQuery(equipmentQueries.equipment())
+  const typesQuery = useQuery(exerciseTypeQueries.types())
+  const groupsQuery = useQuery(muscleGroupsQueries.muscleGroups())
+
+  const navigate = useNavigate({ from: Route.fullPath })
+
+  // I feel like we should use this for searching
+  const [isPending, startTransition] = useTransition()
+
+  function handleSubmit(formSearch: Partial<ExerciseSearch>) {
+
+    const newSearch = {
+      ...search,
+      ...formSearch,
+    }
+    console.log('handleSubmit', newSearch)
+    // don't include empty values
+    for (const key in newSearch) {
+      const value = newSearch[key as keyof ExerciseSearch]
+      if (!value || value?.trim() === '') {
+        delete newSearch[key as keyof ExerciseSearch]
+      }
+    }
+
+    console.log('final search', newSearch)
+    return navigate({ search: newSearch })
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        const data = new FormData(e.currentTarget)
+        const search = Object.fromEntries(data)
+        return handleSubmit(search)
+      }}
+    >
+      <input type="hidden" name="type" value={search.type ?? ''} />
+      <input type="hidden" name="equipment" value={search.equipment ?? ''} />
+      <input type="hidden" name="group" value={search.group ?? ''} />
+      <div className="container mx-auto space-y-2">
+        <div className="relative">
+          <SearchIcon className="absolute size-5 text-muted-foreground top-3 left-3" />
+          <Input
+            type="text"
+            defaultValue={search.q ?? ''}
+            name="q"
+            // do some type of hype debounce?
+            onBlur={(e) => {
+              return handleSubmit({
+                q: e.target.value === '' ? undefined : e.target.value,
+              })
+            }}
+            placeholder="search"
+            className="pl-10"
+          />
+          <button type="submit">submit</button>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Combobox
+            value={search.type}
+            items={
+              typesQuery.data?.map((type) => ({
+                label: type.type ?? '',
+                value: type.id,
+              })) ?? []
+            }
+            onValueChange={(type) => {
+              return handleSubmit({ type })
+            }}
+            placeholder="Select type"
+            emptyText="No type found."
+            isLoading={typesQuery.isLoading}
+          />
+          <Combobox
+            value={search.group}
+            items={
+              groupsQuery.data?.map((group) => ({
+                label: group.name ?? '',
+                value: group.id,
+              })) ?? []
+            }
+            onValueChange={(group) => {
+              return handleSubmit({ group })
+            }}
+            placeholder="Select group"
+            emptyText="No group found."
+            isLoading={groupsQuery.isLoading}
+          />
+          <Combobox
+            value={search.equipment}
+            items={
+              equipmentQuery.data?.map((equipment) => ({
+                label: equipment.name ?? '',
+                value: equipment.id,
+              })) ?? []
+            }
+            onValueChange={(equipment) => {
+              return handleSubmit({ equipment })
+            }}
+            placeholder="Select equpment"
+            emptyText="No equipment found."
+            isLoading={equipmentQuery.isLoading}
+          />
+        </div>
+      </div>
+    </form>
   )
 }

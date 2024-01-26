@@ -12,5 +12,5 @@ export default function PageHeader(props: PageHeaderProps) {
 
   const matches = useTailwindMediaQuery('md')
 
-  return matches ? undefined : <MobileLayout.PageHeader {...props} />
+  return matches ? <MobileLayout.PageHeader {...props} /> : <MobileLayout.PageHeader {...props} />
 }

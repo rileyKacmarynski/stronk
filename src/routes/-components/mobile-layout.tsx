@@ -91,7 +91,7 @@ function MobileHeader({ title, children, actions }: PageHeaderProps) {
           </Typography>
         </motion.div>
       </div>
-      <Typography className="container py-2" variant="h1">
+      <Typography className="container pt-2 pb-6" variant="h1">
         {title}
       </Typography>
       <div className="sticky space-y-4 shadow-md top-12 bg-background shadow-zinc-950 ">

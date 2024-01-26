@@ -30,7 +30,7 @@ export const Route = new FileRoute('/_app').createRoute({
 function AppLayout() {
   const matches = useTailwindMediaQuery('md')
 
-  return matches ? <DesktopLayout /> : <MobileLayout />
+  return matches ? <MobileLayout /> : <MobileLayout />
 }
 
 
