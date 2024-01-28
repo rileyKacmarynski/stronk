@@ -1,24 +1,34 @@
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { FileRoute, useNavigate } from '@tanstack/react-router'
 import { SearchIcon } from 'lucide-react'
-import { queryOptions, useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import {
+  QueryErrorResetBoundary,
+  infiniteQueryOptions,
+  queryOptions,
+  useQuery,
+  useSuspenseInfiniteQuery,
+} from '@tanstack/react-query'
 import supabase from '@/lib/data/db'
 import PageHeader from '@/routes/-components/page-header'
 import z from 'zod'
 import { Combobox } from '@/components/ui/combobox'
-import { useTransition, useRef } from 'react'
-import { Loader } from '@/routes/-components/page-loader'
-import LoadingCombobox from '@/components/ui/loading-combobox'
+import { ErrorBoundary } from 'react-error-boundary'
+import DebouncedInput from '@/components/ui/debounced-input'
+import { Fragment, Suspense, useEffect, useRef, useTransition } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useInView } from 'framer-motion'
+import { Virtuoso } from 'react-virtuoso'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export const exercisesQueries = {
   all: () => ['execises'],
   lists: () => [...exercisesQueries.all(), 'list'],
-  // TODO: add filters
   list: (search: ExerciseSearch) => {
-    return queryOptions({
+    return infiniteQueryOptions({
       queryKey: [...exercisesQueries.lists(), search],
-      queryFn: async () => {
+      queryFn: async ({ pageParam }) => {
+        console.log('pageParam', pageParam)
+
         // I don't love this much sql in js, but it works for now
         let query = supabase
           .from('exercises')
@@ -43,10 +53,17 @@ export const exercisesQueries = {
           })
         }
 
-        const { data } = await query.order('title').range(0, 25).throwOnError()
+        const take = 50
 
-        return data
+        const { data } = await query
+          .order('title')
+          .range(take * pageParam, take * (pageParam + 1) - 1)
+          .throwOnError()
+
+        return { data, nextCursor: pageParam + 1 }
       },
+      initialPageParam: 0,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
     })
   },
 }
@@ -105,7 +122,8 @@ type ExerciseSearch = z.infer<typeof exerciseSearchSchema>
 export const Route = new FileRoute('/_app/exercises').createRoute({
   validateSearch: exerciseSearchSchema,
   loaderDeps: ({ search }) => search,
-  loader: ({ context, deps }) => {
+  loader: () => {
+    // let's just show a shell while we load
     // context.queryClient.ensureQueryData(muscleGroupsQueries.muscleGroups())
     // context.queryClient.ensureQueryData(equipmentQueries.equipment())
     // context.queryClient.ensureQueryData(exerciseTypeQueries.types())
@@ -115,11 +133,8 @@ export const Route = new FileRoute('/_app/exercises').createRoute({
 })
 
 function App() {
-  const search = Route.useSearch()
-  const exercisesQuery = useQuery(exercisesQueries.list(search))
-
   return (
-    <div>
+    <>
       <div className="pb-2">
         <PageHeader
           title="Exercises"
@@ -132,25 +147,75 @@ function App() {
           <Form />
         </PageHeader>
         <div className="container h-full">
-          <ul>
-            {exercisesQuery.data?.map((exercise) => (
-              <li className="py-2 border-b border-border" key={exercise.id}>
-                <div className="space-y-1">
-                  <p className="font-medium">
-                    {exercise.title}{' '}
-                    {exercise.required_equipment ? `(${exercise.equipment?.name})` : ''}
-                  </p>
-                  <div className="flex text-sm font-medium text-muted-foreground">
-                    <p className="">
-                      {exercise.muscle_groups?.name} • {exercise.exercise_types?.type}
-                    </p>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <QueryErrorResetBoundary>
+            {({ reset }) => (
+              <ErrorBoundary
+                fallbackRender={({ _error, resetErrorBoundary }) => (
+                  <QueryError resetErrorBoundary={resetErrorBoundary} />
+                )}
+                onReset={reset}
+              >
+                <Suspense fallback={<SkeletonLoader />}>
+                  <ExerciseTable />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+          </QueryErrorResetBoundary>
         </div>
       </div>
+    </>
+  )
+}
+
+export function SkeletonLoader({ count }: { count?: number }) {
+  const items = Array(count ?? 25).fill(0)
+
+  function getRandomNumber(min: number, max: number) {
+    // Ensure that the bounds are valid numbers
+    if (typeof min !== 'number' || typeof max !== 'number') {
+      throw new Error('Both bounds must be numbers')
+    }
+
+    // Generate a random number within the specified range
+    return Math.floor(Math.random() * (max - min + 1)) + min
+  }
+
+  return (
+    <ul>
+      {items.map((_, i) => (
+        <li className="py-2 border-b -z-10 border-border" key={i}>
+          <div className="space-y-4">
+            <Skeleton
+              className="h-5"
+              style={{ width: `${getRandomNumber(120, 240)}px` }}
+            />
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Skeleton
+                className="h-3"
+                style={{ width: `${getRandomNumber(30, 100)}px` }}
+              />
+              <Skeleton className="rounded-full size-1" />
+              <Skeleton
+                className="h-3"
+                style={{ width: `${getRandomNumber(30, 100)}px` }}
+              />
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export function QueryError({
+  resetErrorBoundary,
+}: {
+  resetErrorBoundary: (...args: any[]) => void
+}) {
+  return (
+    <div className="grid pt-4 space-y-6 place-items-center">
+      <p>Unable to to query data</p>
+      <Button onClick={resetErrorBoundary}>Try again</Button>
     </div>
   )
 }
@@ -163,16 +228,11 @@ function Form() {
 
   const navigate = useNavigate({ from: Route.fullPath })
 
-  // I feel like we should use this for searching
-  const [isPending, startTransition] = useTransition()
-
   function handleSubmit(formSearch: Partial<ExerciseSearch>) {
-
     const newSearch = {
       ...search,
       ...formSearch,
     }
-    console.log('handleSubmit', newSearch)
     // don't include empty values
     for (const key in newSearch) {
       const value = newSearch[key as keyof ExerciseSearch]
@@ -181,10 +241,12 @@ function Form() {
       }
     }
 
-    console.log('final search', newSearch)
-    return navigate({ search: newSearch })
+    navigate({ search: newSearch })
   }
 
+  // this whole form with hidden inputs isn't my favorite
+  // I want the user to be able to submit the form by hitting enter
+  // maybe I won't need that functionality when I have the tranition piece working
   return (
     <form
       onSubmit={(e) => {
@@ -200,20 +262,18 @@ function Form() {
       <div className="container mx-auto space-y-2">
         <div className="relative">
           <SearchIcon className="absolute size-5 text-muted-foreground top-3 left-3" />
-          <Input
+          <DebouncedInput
             type="text"
             defaultValue={search.q ?? ''}
             name="q"
-            // do some type of hype debounce?
-            onBlur={(e) => {
-              return handleSubmit({
-                q: e.target.value === '' ? undefined : e.target.value,
+            onChange={(value) => {
+              handleSubmit({
+                q: value === '' ? undefined : value,
               })
             }}
             placeholder="search"
             className="pl-10"
           />
-          <button type="submit">submit</button>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Combobox
@@ -264,5 +324,81 @@ function Form() {
         </div>
       </div>
     </form>
+  )
+}
+
+function ExerciseTable() {
+  const search = Route.useSearch()
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useSuspenseInfiniteQuery(exercisesQueries.list(search))
+  const queryRef = useRef<HTMLLIElement>(null)
+  const isInView = useInView(queryRef)
+
+  useEffect(() => {
+    if (hasNextPage && isInView) {
+      fetchNextPage()
+    }
+  }, [isInView])
+
+  // const items = data?.pages
+  //   .flatMap((g) => g.data?.map((e) => e))
+  //   .filter((e) => e !== undefined)
+
+  // should use virtuoso here, but then I have to redo the layout
+  
+  return (
+    <ul className="h-full">
+      {/* <Virtuoso
+        className="h-full"
+        data={items}
+        itemContent={(_i, exercise) => (
+          <li className="py-2 border-b last:border-b-0 border-border" key={exercise.id}>
+            <div className="space-y-1">
+              <p className="font-medium">
+                {exercise.title}{' '}
+                {exercise.required_equipment ? `(${exercise.equipment?.name})` : ''}
+              </p>
+              <div className="flex text-sm font-medium text-muted-foreground">
+                <p className="">
+                  {exercise.muscle_groups?.name} • {exercise.exercise_types?.type}
+                </p>
+              </div>
+            </div>
+          </li>
+        )}
+      /> */}
+      {data?.pages.map((group, i) => (
+        <Fragment key={i}>
+          {group.data?.map((exercise) => (
+            <li className="py-2 border-b last:border-b-0 border-border" key={exercise.id}>
+              <div className="space-y-1">
+                <p className="font-medium">
+                  {exercise.title}{' '}
+                  {exercise.required_equipment ? `(${exercise.equipment?.name})` : ''}
+                </p>
+                <div className="flex text-sm font-medium text-muted-foreground">
+                  <p className="">
+                    {exercise.muscle_groups?.name} • {exercise.exercise_types?.type}
+                  </p>
+                </div>
+              </div>
+            </li>
+          ))}
+        </Fragment>
+      ))}
+      <li ref={queryRef}>
+        <AnimatePresence>
+          {isFetchingNextPage && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <SkeletonLoader count={1} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </li>
+    </ul>
   )
 }
