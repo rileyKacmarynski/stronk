@@ -1,9 +1,9 @@
-import { FileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { useTailwindMediaQuery } from '@/lib/utils'
 import AuthProvider from '@/components/providers/auth-provider'
 import MobileLayout from '@/routes/-components/mobile-layout'
 
-export const Route = new FileRoute('/_app').createRoute({
+export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context: { authService } }) => {
     const session = await authService.getSession()
 
@@ -32,7 +32,6 @@ function AppLayout() {
 
   return matches ? <MobileLayout /> : <MobileLayout />
 }
-
 
 function DesktopLayout() {
   return (

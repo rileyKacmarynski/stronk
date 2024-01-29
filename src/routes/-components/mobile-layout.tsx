@@ -94,7 +94,7 @@ function MobileHeader({ title, children, actions }: PageHeaderProps) {
       <Typography className="container z-10 pt-2 pb-6" variant="h1">
         {title}
       </Typography>
-      <div className="sticky z-20 space-y-4 shadow-md top-12 bg-background shadow-zinc-950 ">
+      <div className="sticky z-20 space-y-4 shadow-lg top-12 bg-background shadow-zinc-950 ">
         {children}
         <motion.div style={{ opacity }} className="w-full h-[1px] bg-muted" />
       </div>

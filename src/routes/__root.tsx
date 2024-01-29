@@ -3,7 +3,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { Credentials } from '@/lib/auth/auth-service'
 import { cn } from '@/lib/utils'
 import { AuthResponse, Session } from '@supabase/supabase-js'
-import { Outlet, rootRouteWithContext } from '@tanstack/react-router'
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import React from 'react'
 import { Suspense } from 'react'
 import { QueryClient } from '@tanstack/react-query'
@@ -53,4 +53,4 @@ interface RouterContext {
   queryClient: QueryClient
 }
 
-export const Route = rootRouteWithContext<RouterContext>()({ component: RootLayout })
+export const Route = createRootRouteWithContext<RouterContext>()({ component: RootLayout })

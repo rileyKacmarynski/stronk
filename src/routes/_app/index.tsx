@@ -1,9 +1,9 @@
 import { useSession } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/routes/-components/page-header'
-import { FileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = new FileRoute('/_app/').createRoute({
+export const Route = createFileRoute('/_app/')({
   component: App,
 })
 

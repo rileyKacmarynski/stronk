@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { z } from 'zod'
-import { FileRoute, Link, redirect, } from '@tanstack/react-router'
+import { Link, createFileRoute, redirect } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -19,7 +19,7 @@ const authSearchSchema = z.object({
   redirect: z.string().optional(),
 })
 export type AuthSearch = z.infer<typeof authSearchSchema>
-export const Route = new FileRoute('/sign-up').createRoute({
+export const Route = createFileRoute('/sign-up')({
   component: AuthForm,
   validateSearch: authSearchSchema,
   beforeLoad: async ({ context: { authService } }) => {

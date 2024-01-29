@@ -17,7 +17,6 @@ export default function DebouncedInput({
   const [searchTemp, setSearchTemp] = useState(defaultValue ?? '')
   const debouncedValue = useDebounce(searchTemp, delay)
   useEffect(() => {
-    console.log('debouncing yo', debouncedValue)
     onChange(debouncedValue)
   }, [debouncedValue])
 
