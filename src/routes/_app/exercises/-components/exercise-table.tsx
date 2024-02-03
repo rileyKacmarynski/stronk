@@ -1,23 +1,32 @@
-import { exercisesQueries } from "@/routes/_app/exercises/-queries";
-import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
-import { getRouteApi } from "@tanstack/react-router";
-import { useInView, AnimatePresence, motion } from "framer-motion";
-import { useRef, useEffect, Fragment } from "react";
-import SkeletonLoader from "./skeleton-loader";
+import { exercisesQueries } from '@/routes/_app/exercises/-queries'
+import { useSuspenseInfiniteQuery } from '@tanstack/react-query'
+import { getRouteApi } from '@tanstack/react-router'
+import { useInView, AnimatePresence, motion } from 'framer-motion'
+import { useRef, useEffect, Fragment } from 'react'
+import SkeletonLoader from './skeleton-loader'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 const api = getRouteApi('/_app/exercises')
 
 export default function ExerciseTable() {
-  const search = api.useSearch();
-  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useSuspenseInfiniteQuery(exercisesQueries.list(search));
-  const queryRef = useRef<HTMLLIElement>(null);
-  const isInView = useInView(queryRef);
+  const search = api.useSearch()
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useSuspenseInfiniteQuery(exercisesQueries.list(search))
+  const queryRef = useRef<HTMLLIElement>(null)
+  const isInView = useInView(queryRef)
 
   useEffect(() => {
     if (hasNextPage && isInView) {
-      fetchNextPage();
+      fetchNextPage()
     }
-  }, [isInView]);
+  }, [isInView])
 
   // const items = data?.pages
   //   .flatMap((g) => g.data?.map((e) => e))
@@ -47,19 +56,32 @@ export default function ExerciseTable() {
       {data?.pages.map((group, i) => (
         <Fragment key={i}>
           {group.data?.map((exercise) => (
-            <li className="py-2 border-b last:border-b-0 border-border" key={exercise.id}>
-              <div className="space-y-1">
-                <p className="font-medium">
-                  {exercise.title}{' '}
-                  {exercise.required_equipment ? `(${exercise.equipment?.name})` : ''}
-                </p>
-                <div className="flex text-sm font-medium text-muted-foreground">
-                  <p className="">
-                    {exercise.muscle_groups?.name} • {exercise.exercise_types?.type}
-                  </p>
-                </div>
-              </div>
-            </li>
+            <Dialog key={exercise.id}>
+              <DialogTrigger asChild>
+                <li
+                  className="py-2 transition border-b cursor-pointer hover:bg-white/5 active:bg-white/10 last:border-b-0 border-border"
+                  key={exercise.id}
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium">
+                      {exercise.title}{' '}
+                      {exercise.required_equipment ? `(${exercise.equipment?.name})` : ''}
+                    </p>
+                    <div className="flex text-sm font-medium text-muted-foreground">
+                      <p className="">
+                        {exercise.muscle_groups?.name} • {exercise.exercise_types?.type}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>{exercise.title}</DialogTitle>
+                </DialogHeader>
+                <div className="py-4 -4">{exercise.description}</div>
+              </DialogContent>
+            </Dialog>
           ))}
         </Fragment>
       ))}
@@ -77,5 +99,5 @@ export default function ExerciseTable() {
         </AnimatePresence>
       </li>
     </ul>
-  );
+  )
 }

@@ -1,34 +1,97 @@
 import { Button } from '@/components/ui/button'
 import Typography from '@/components/ui/typography'
 import { PageHeaderProps } from '@/routes/-components/page-header'
-import { Link, Outlet } from '@tanstack/react-router'
+import { Link, Outlet, getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useScroll, useTransform, useSpring, motion } from 'framer-motion'
 import { User, Clock3, Plus, Dumbbell } from 'lucide-react'
-import { RefObject, createContext, useContext, useRef } from 'react'
+import { RefObject, createContext, useContext, useRef, useState } from 'react'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
+import { cn } from '@/lib/utils'
 
 type ContextValue = {
   scrollRef: RefObject<HTMLDivElement>
 }
 const LayoutContext = createContext<ContextValue | null>(null)
 
-function useLayoutContext(){
+function useLayoutContext() {
   const context = useContext(LayoutContext)
-  if(!context) throw new Error('LayoutContext must be used inside a provider')
+  if (!context) throw new Error('LayoutContext must be used inside a provider')
 
-  return context;
+  return context
 }
+
+const Route = getRouteApi('/_app')
 
 export default function MobileLayout() {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+  const { showCurrentWorkout } = Route.useSearch()
+
+  // TODO: Figure out how to integrate drawer with routing
+  const collapsedHeight = '161px'
+  function toggleDrawer() {
+    navigate({
+      search: (s) => ({
+        ...s,
+        showCurrentWorkout: showCurrentWorkout ? undefined : true,
+      }),
+      mask: {
+        search: (s) => ({
+          ...s,
+          showCurrentWorkout: undefined,
+        }),
+      },
+    })
+  }
 
   return (
-    <div data-testid="layout" className="flex flex-col h-full">
+    <div data-testid="layout" className="flex flex-col h-dvh">
       <div ref={scrollRef} className="h-[calc(100%-57px)] overflow-auto">
         <LayoutContext.Provider value={{ scrollRef }}>
           <Outlet />
         </LayoutContext.Provider>
       </div>
-      <nav className="bg-background w-full border-border border-t py-1 fixed bottom-0 shadow-[0_-1px_3px_0_rgba(0,0,0,0.5),0_-1px_2px_-1px_rgba(0,0,0,0.5)]">
+      <Drawer
+        modal={false}
+        open={true}
+        dismissible={false}
+        snapPoints={[collapsedHeight, 1]}
+        activeSnapPoint={showCurrentWorkout ? 1 : collapsedHeight}
+        setActiveSnapPoint={toggleDrawer}
+      >
+        <DrawerContent onDoubleClick={toggleDrawer} className="p-b-[57px]">
+          <div
+            className={cn('w-full mx-auto', {
+              'overflow-y-auto': showCurrentWorkout,
+              'overflow-y-hidden': !showCurrentWorkout,
+            })}
+          >
+            <DrawerHeader>
+              <DrawerTitle>Move Goal</DrawerTitle>
+              <DrawerDescription>Set your daily activity goal.</DrawerDescription>
+            </DrawerHeader>
+            <div className="p-4 pb-0">
+              <div className="flex items-center justify-center space-x-2">
+                this is some content
+              </div>
+            </div>
+            <DrawerFooter>
+              <Button>Submit</Button>
+              <Button onClick={toggleDrawer} variant="outline">
+                Cancel
+              </Button>
+            </DrawerFooter>
+          </div>
+        </DrawerContent>
+      </Drawer>
+      <nav className="bg-background z-50 w-full border-border border-t py-1 fixed bottom-0 shadow-[0_-1px_3px_0_rgba(0,0,0,0.5),0_-1px_2px_-1px_rgba(0,0,0,0.5)]">
         <ul className="max-w-[380px] mx-auto flex gap-2 justify-between">
           <li>
             <NavLink to="/profile">
@@ -94,7 +157,7 @@ function MobileHeader({ title, children, actions }: PageHeaderProps) {
       <Typography className="container z-10 pt-2 pb-6" variant="h1">
         {title}
       </Typography>
-      <div className="sticky z-20 space-y-4 shadow-lg top-12 bg-background shadow-zinc-950 ">
+      <div className="sticky z-20 space-y-4 shadow-md top-12 bg-background shadow-zinc-950 ">
         {children}
         <motion.div style={{ opacity }} className="w-full h-[1px] bg-muted" />
       </div>

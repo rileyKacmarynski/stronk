@@ -24,7 +24,7 @@ export default function Form() {
     // don't include empty values
     for (const key in newSearch) {
       const value = newSearch[key as keyof ExerciseSearch];
-      if (!value || value?.trim() === '') {
+      if (!value && value?.trim() === '') {
         delete newSearch[key as keyof ExerciseSearch];
       }
     }

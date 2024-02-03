@@ -2,6 +2,11 @@ import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { useTailwindMediaQuery } from '@/lib/utils'
 import AuthProvider from '@/components/providers/auth-provider'
 import MobileLayout from '@/routes/-components/mobile-layout'
+import z from 'zod'
+
+const layoutSearchSchema = z.object({
+  showCurrentWorkout: z.boolean().optional().catch(false)
+})
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context: { authService } }) => {
@@ -20,6 +25,7 @@ export const Route = createFileRoute('/_app')({
       session,
     }
   },
+  validateSearch: layoutSearchSchema,
   component: () => (
     <AuthProvider>
       <AppLayout />

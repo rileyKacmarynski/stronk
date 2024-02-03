@@ -20,7 +20,7 @@ const router = new Router({
     queryClient,
     authService,
   },
-  defaultPreload: 'intent',
+  // defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
 })
 
