@@ -103,6 +103,48 @@ export interface Database {
         }
         Relationships: []
       }
+      sets: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          id: string
+          reps: number
+          weight: number
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          id?: string
+          reps: number
+          weight?: number
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          reps?: number
+          weight?: number
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sets_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sets_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       staging_exercises: {
         Row: {
           body_part: string | null
@@ -129,6 +171,38 @@ export interface Database {
           type?: string | null
         }
         Relationships: []
+      }
+      workouts: {
+        Row: {
+          finished_at: string | null
+          id: string
+          started_at: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          title: string
+          user_id?: string
+        }
+        Update: {
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

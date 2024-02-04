@@ -13,7 +13,7 @@
     "test:vitest": "vitest run --watch",
     "test:playwright": "playwright test",
     "test:ui": "playwright test --ui",
-    "supa:types": "npx supabase gen types typescript --project-id 'xvudlydphzsktjoyxprh' --schema public > types/supabase.ts"
+    "supa:types": "npx supabase gen types typescript --project-id 'xvudlydphzsktjoyxprh' --schema public > src/types/supabase.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -36,6 +36,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^0.2.1",
+    "date-fns": "^3.3.1",
     "framer-motion": "^11.0.3",
     "lucide-react": "^0.321.0",
     "next-themes": "^0.2.1",

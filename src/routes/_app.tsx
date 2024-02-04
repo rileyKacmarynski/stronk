@@ -3,6 +3,7 @@ import { useTailwindMediaQuery } from '@/lib/utils'
 import AuthProvider from '@/components/providers/auth-provider'
 import MobileLayout from '@/routes/-components/mobile-layout'
 import z from 'zod'
+import { currentWorkoutQueries } from '@/routes/_app/-current-workout/queries'
 
 const layoutSearchSchema = z.object({
   showCurrentWorkout: z.boolean().optional().catch(false)
@@ -26,6 +27,9 @@ export const Route = createFileRoute('/_app')({
     }
   },
   validateSearch: layoutSearchSchema,
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(currentWorkoutQueries.currentWorkout())
+  },
   component: () => (
     <AuthProvider>
       <AppLayout />

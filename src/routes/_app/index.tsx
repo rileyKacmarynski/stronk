@@ -19,9 +19,7 @@ function App() {
           <Typography variant="h3" as="h2">
             Quick Start
           </Typography>
-          <Button className="w-full sm:w-auto bg-sky-700 text-sky-100 hover:bg-sky-800">
-            Start an Empty Workout
-          </Button>
+          <StartWorkoutButton />
         </div>
         <div className="space-y-4">
           <Typography variant="h3" as="h2">
@@ -42,5 +40,16 @@ function App() {
         </div>
       </div>
     </div>
+  )
+}
+
+function StartWorkoutButton() {
+  
+
+
+  return (
+    <Button className="w-full sm:w-auto bg-sky-700 text-sky-100 hover:bg-sky-800">
+      Start an Empty Workout
+    </Button>
   )
 }
