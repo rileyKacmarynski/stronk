@@ -1,5 +1,5 @@
 import supabase from '@/lib/data/db'
-import { queryOptions, useMutation } from '@tanstack/react-query'
+import { queryOptions } from '@tanstack/react-query'
 
 export const currentWorkoutQueries = {
   key: () => ['currentWorkout'],
@@ -11,12 +11,10 @@ export const currentWorkoutQueries = {
           .from('workouts')
           .select('*, sets(id, weight, reps, created_at, exercises(*))')
           .is('finished_at', null)
-          .single()
-          .throwOnError()
+          .limit(1)
 
-        return data
+        return data?.length ? data[0] : null
       },
     })
   },
 }
-

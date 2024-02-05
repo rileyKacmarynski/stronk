@@ -2,9 +2,10 @@ import { Session } from '@supabase/supabase-js'
 import { Navigate } from '@tanstack/react-router'
 import { createContext, useContext, useEffect, useState } from 'react'
 import supabase from '@/lib/data/db'
-const SessionContext = createContext<Session | null>(null)
 // ehhh, this is a little weird
 import { Route } from '@/routes/_app'
+
+const SessionContext = createContext<Session | null>(null)
 
 export function useSession() {
   const context = useContext(SessionContext)

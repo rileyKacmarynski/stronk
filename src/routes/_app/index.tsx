@@ -1,7 +1,9 @@
 import { useSession } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import Typography from '@/components/ui/typography'
+import { useStartWorkout } from '@/lib/commands/workouts'
 import PageHeader from '@/routes/-components/page-header'
+import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_app/')({
@@ -44,11 +46,10 @@ function App() {
 }
 
 function StartWorkoutButton() {
-  
-
+  const startWorkout = useStartWorkout()
 
   return (
-    <Button className="w-full sm:w-auto bg-sky-700 text-sky-100 hover:bg-sky-800">
+    <Button onClick={() => startWorkout.mutate()} className="w-full sm:w-auto bg-sky-700 text-sky-100 hover:bg-sky-800">
       Start an Empty Workout
     </Button>
   )

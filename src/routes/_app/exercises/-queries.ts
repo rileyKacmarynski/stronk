@@ -2,15 +2,6 @@ import supabase from "@/lib/data/db"
 import { ExerciseSearch } from "@/routes/_app/exercises/route"
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query"
 
-// const exerciseSearchSchema = z.object({
-//   q: z.string().optional(),
-//   equipment: z.string().optional(),
-//   type: z.string().optional(),
-//   group: z.string().optional(),
-// })
-
-// type ExerciseSearch = z.infer<typeof exerciseSearchSchema>
-
 export const exercisesQueries = {
   all: () => ['execises'],
   lists: () => [...exercisesQueries.all(), 'list'],

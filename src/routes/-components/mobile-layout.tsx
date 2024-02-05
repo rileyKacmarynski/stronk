@@ -75,7 +75,7 @@ export default function MobileLayout() {
 
 function MobileHeader({ title, children, actions }: PageHeaderProps) {
   const { scrollRef } = useLayoutContext()
-  const { scrollY } = useScroll({ container: scrollRef })
+  const { scrollY } = useScroll({ container: scrollRef, layoutEffect: false })
   const progress = useTransform(scrollY, [0, 54, 64], [0, 0, 1])
   const opacity = useSpring(progress)
 
