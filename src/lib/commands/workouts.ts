@@ -5,11 +5,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 export function useStartWorkout(title?: string) {
   const queryClient = useQueryClient()
   const queryKey = currentWorkoutQueries.key()
-  const initialWorkout = {
-    id: crypto.randomUUID(),
-    started_at: new Date().toUTCString(),
-    title: title ?? `Workout ${new Date().toLocaleDateString()}`,
-  }
+  // want to make sure the db workout has the 
+  // same id as the opimistic one
+  const id = crypto.randomUUID()
 
   return useMutation({
     mutationFn: async () => {
@@ -21,7 +19,13 @@ export function useStartWorkout(title?: string) {
         return
       }
 
-      const result = await supabase.from('workouts').insert([initialWorkout])
+      const result = await supabase.from('workouts').insert([
+        {
+          id,
+          started_at: new Date().toUTCString(),
+          title: title ?? `Workout ${new Date().toLocaleDateString()}`,
+        },
+      ])
 
       return result
     },
@@ -30,8 +34,11 @@ export function useStartWorkout(title?: string) {
 
       const workout = queryClient.getQueryData(queryKey)
 
-      console.log('setting cache with', initialWorkout)
-      queryClient.setQueryData(queryKey, initialWorkout)
+      queryClient.setQueryData(queryKey, {
+        id,
+        started_at: new Date().toUTCString(),
+        title: title ?? `Workout ${new Date().toLocaleDateString()}`,
+      })
 
       return { workout }
     },
@@ -55,8 +62,6 @@ export function useDeleteWorkout() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await wait(3000)
-
       return await supabase.from('workouts').delete().eq('id', id)
     },
     onMutate: async () => {

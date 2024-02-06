@@ -20,9 +20,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 import { currentWorkoutQueries } from './queries'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { useAnimationFrame } from 'framer-motion'
-import {  useCallback, useRef } from 'react'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { AnimatePresence, motion, useAnimationFrame } from 'framer-motion'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { intervalToDuration } from 'date-fns'
 import { useDeleteWorkout } from '@/lib/commands/workouts'
 import { create } from 'zustand'
@@ -78,9 +78,37 @@ export default function CurrentWorkout() {
               'overflow-y-hidden': !isOpen,
             })}
           >
+            <AnimatePresence mode="popLayout" initial={false}>
+              {isOpen ? (
+                <motion.div
+                  key="open"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex p-4 text-center"
+                >
+                  <Button className="ml-auto" size="sm">
+                    Finish
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="close"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="grid items-center content-center justify-center h-16 text-center"
+                >
+                  <DrawerTitle>{workout?.title}</DrawerTitle>
+                  <DrawerDescription>
+                    <span ref={timerRef}></span>
+                  </DrawerDescription>
+                </motion.div>
+              )}
+            </AnimatePresence>
             <DrawerHeader>
               <DrawerTitle>{workout?.title}</DrawerTitle>
-              <DrawerDescription className="font-mono text-lg font-medium">
+              <DrawerDescription className="font-mono font-medium">
                 <span ref={timerRef}></span>
               </DrawerDescription>
             </DrawerHeader>

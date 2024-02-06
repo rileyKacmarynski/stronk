@@ -5,7 +5,10 @@ import { Link, Outlet } from '@tanstack/react-router'
 import { useScroll, useTransform, useSpring, motion } from 'framer-motion'
 import { User, Clock3, Plus, Dumbbell } from 'lucide-react'
 import { RefObject, createContext, useContext, useRef } from 'react'
-import CurrentWorkout from '@/routes/_app/-current-workout'
+import CurrentWorkout, { useDrawerStore } from '@/routes/_app/-current-workout'
+import { cn } from '@/lib/utils'
+import { currentWorkoutQueries } from '@/routes/_app/-current-workout/queries'
+import { useQuery } from '@tanstack/react-query'
 
 type ContextValue = {
   scrollRef: RefObject<HTMLDivElement>
@@ -21,6 +24,8 @@ function useLayoutContext() {
 
 export default function MobileLayout() {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const isOpen = useDrawerStore((store) => store.isOpen)
+  const currentWorkout = useQuery(currentWorkoutQueries.currentWorkout())
 
   return (
     <div data-testid="layout" className="flex flex-col h-dvh">
@@ -30,7 +35,15 @@ export default function MobileLayout() {
         </LayoutContext.Provider>
       </div>
       <CurrentWorkout />
-      <nav className="bg-background z-50 w-full border-border border-t py-1 fixed bottom-0 shadow-[0_-1px_3px_0_rgba(0,0,0,0.5),0_-1px_2px_-1px_rgba(0,0,0,0.5)]">
+      <nav
+        className={cn(
+          'bg-background z-50 w-full border-border border-t py-1 fixed bottom-0 transition-all delay-200 shadow-[0_-1px_3px_0_rgba(0,0,0,0.5),0_-1px_2px_-1px_rgba(0,0,0,0.5)]',
+          currentWorkout.data && {
+            'border-border': isOpen,
+            'border-transparent shadow-none delay-0': !isOpen,
+          }
+        )}
+      >
         <ul className="max-w-[380px] mx-auto flex gap-2 justify-between">
           <li>
             <NavLink to="/profile">
