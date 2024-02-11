@@ -24,8 +24,9 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { AnimatePresence, motion, useAnimationFrame } from 'framer-motion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { intervalToDuration } from 'date-fns'
-import { useDeleteWorkout } from '@/lib/commands/workouts'
+import { useDeleteWorkout, useFinishWorkout } from '@/lib/commands/workouts'
 import { create } from 'zustand'
+import ConfirmModal from '@/components/modals/confirm-modal'
 
 const collapsedHeight = '161px'
 
@@ -48,16 +49,35 @@ export default function CurrentWorkout() {
   const { isOpen, toggle, close } = useDrawerStore()
 
   // trying to update state in animation frame is a bad idea
-  const timerRef = useRef<HTMLSpanElement>(null)
+  const timerRefs = useRef<Map<string, HTMLElement> | null>(null)
   useAnimationFrame(() => {
-    if (!timerRef.current || !workout) return
+    if (!workout) return
 
-    timerRef.current.innerHTML = durationFrom(new Date(workout.started_at))
+    const timerRefs = getRef()
+    timerRefs.forEach((timerRef) => {
+      timerRef.innerHTML = durationFrom(new Date(workout.started_at))
+    })
   })
 
+  function getRef() {
+    if (!timerRefs.current) {
+      timerRefs.current = new Map()
+    }
+
+    return timerRefs.current
+  }
+
   const deleteWorkout = useDeleteWorkout()
-  const cancelWorkout = useCallback((id: string) => {
+  const cancelWorkout = useCallback((id?: string) => {
+    if (!id) return
     deleteWorkout.mutate(id)
+    close()
+  }, [])
+
+  const finishWorkout = useFinishWorkout()
+  const finish = useCallback((id?: string) => {
+    if (!id) return
+    finishWorkout.mutate(id)
     close()
   }, [])
 
@@ -87,9 +107,15 @@ export default function CurrentWorkout() {
                   exit={{ opacity: 0 }}
                   className="flex p-4 text-center"
                 >
-                  <Button className="ml-auto" size="sm">
-                    Finish
-                  </Button>
+                  <ConfirmModal
+                    title="Finish workout?"
+                    description="This will save all your current sets. You can go back and edit them later in the history page."
+                    onConfirm={() => finish(workout?.id)}
+                  >
+                    <Button className="ml-auto" size="sm">
+                      Finish
+                    </Button>
+                  </ConfirmModal>
                 </motion.div>
               ) : (
                 <motion.div
@@ -101,7 +127,17 @@ export default function CurrentWorkout() {
                 >
                   <DrawerTitle>{workout?.title}</DrawerTitle>
                   <DrawerDescription>
-                    <span ref={timerRef}></span>
+                    <span
+                      ref={(node) => {
+                        const map = getRef()
+                        const key = 'header'
+                        if (node) {
+                          map.set(key, node)
+                        } else {
+                          map.delete(key)
+                        }
+                      }}
+                    ></span>
                   </DrawerDescription>
                 </motion.div>
               )}
@@ -109,7 +145,17 @@ export default function CurrentWorkout() {
             <DrawerHeader>
               <DrawerTitle>{workout?.title}</DrawerTitle>
               <DrawerDescription className="font-mono font-medium">
-                <span ref={timerRef}></span>
+                <span
+                  ref={(node) => {
+                    const map = getRef()
+                    const key = 'body'
+                    if (node) {
+                      map.set(key, node)
+                    } else {
+                      map.delete(key)
+                    }
+                  }}
+                ></span>
               </DrawerDescription>
             </DrawerHeader>
             <div className="p-4 pb-0">
@@ -119,28 +165,14 @@ export default function CurrentWorkout() {
             </div>
             <DrawerFooter>
               <Button>Submit</Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline">Cancel</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Cancel workout?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will delete all the sets you've done up to this point.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => cancelWorkout(workout?.id ?? '1')}
-                      className={buttonVariants({ variant: 'destructive' })}
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <ConfirmModal
+                onConfirm={() => cancelWorkout(workout?.id)}
+                destructive
+                title="Cancel workout?"
+                description="This will delete all the sets you've done up to this point."
+              >
+                <Button variant="outline">Cancel</Button>
+              </ConfirmModal>
             </DrawerFooter>
           </div>
         </DrawerContent>

@@ -1,11 +1,12 @@
 import supabase from '@/lib/data/db'
 import { currentWorkoutQueries } from '@/routes/_app/-current-workout/queries'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 export function useStartWorkout(title?: string) {
   const queryClient = useQueryClient()
   const queryKey = currentWorkoutQueries.key()
-  // want to make sure the db workout has the 
+  // want to make sure the db workout has the
   // same id as the opimistic one
   const id = crypto.randomUUID()
 
@@ -54,7 +55,37 @@ export function useStartWorkout(title?: string) {
 
 export function useAddExercise() {}
 
-export function useEndWorkout() {}
+export function useFinishWorkout() {
+  const queryClient = useQueryClient()
+  const queryKey = currentWorkoutQueries.key()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return await supabase
+        .from('workouts')
+        .update({ finished_at: new Date().toISOString() })
+        .eq('id', id)
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey })
+
+      const workout = queryClient.getQueryData(queryKey)
+
+      queryClient.setQueryData(queryKey, null)
+
+      return { workout }
+    },
+    onError: (err, _, context) => {
+      console.error('error', err)
+      toast.error('Unable to finish workout.')
+      queryClient.setQueryData(queryKey, context?.workout)
+    },
+    onSettled: () => {
+      // TODO: invalidate all workouts for the history page here
+      queryClient.invalidateQueries({ queryKey })
+    },
+  })
+}
 
 export function useDeleteWorkout() {
   const queryClient = useQueryClient()
@@ -75,6 +106,7 @@ export function useDeleteWorkout() {
     },
     onError: (err, _, context) => {
       console.error('error', err)
+      toast.error('Unable to delete workout.')
       queryClient.setQueryData(queryKey, context?.workout)
     },
     onSettled: () => {
